@@ -17,6 +17,8 @@ EMAIL_RE = re.compile(r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", re.IGNORECAS
 PHONE_RE = re.compile(r"(?<!\w)(?:\+\d{1,3}[\s-]?)?(?:\d[\s()-]?){8,14}\d(?!\w)")
 PREFERENCE_RE = re.compile(
     r"\b(?:i\s+(?:generally\s+|usually\s+|really\s+)?prefer|"
+    r"i(?:'m|m|\s+am)\s+(?:really\s+)?(?:into|inot)|"
+    r"i\s+(?:like|love)\s+(?!that\b|this\b|the\b|it\b)|"
     r"my\s+(?:favorite|favourite|preference|budget)|remember\s+that|"
     r"i(?:'m|\s+am)\s+looking\s+for|i\s+want\s+to\s+stick\s+with)\b",
     re.IGNORECASE,
