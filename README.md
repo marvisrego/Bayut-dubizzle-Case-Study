@@ -53,17 +53,31 @@ The backend keeps listing IDs for follow-up references while Streamlit shows car
 
 I captured these screenshots from the [deployed Streamlit app](https://app-dubizzle-case-study-48ew9fpqpk2dou4ybavz2g.streamlit.app/) on 24 September 2026 using the name **Marvis**.
 
-![I started a session as Marvis](docs/streamlit_welcome.png)
+### Short-term memory: same session `6e57bc00`
 
-![I received Toyota listings with names, prices, and mileage but no internal listing IDs](docs/streamlit_results.png)
+I searched for Toyota cars from 2020 under AED 150,000. The prompt and matching results are visible together:
 
-![I asked a follow-up warranty question about the second result, a Toyota Urban Cruiser](docs/streamlit_followup.png)
+![My search prompt and Toyota results in session 6e57bc00](docs/streamlit_results.png)
 
-![A completely new session recalled my preferences and liked cars](docs/streamlit_memory.png)
+I then asked for the second car's mileage and followed with "Does it have a warranty?" Both prompts and both replies refer to the same Toyota Prado:
 
-![I rejoined as Marvis in a fresh browser and recalled the same profile](docs/streamlit_rejoin.png)
+![Both follow-up prompts and answers identify the same Toyota Prado in session 6e57bc00](docs/streamlit_followup.png)
 
-I saved a Toyota SUV preference and AED 150,000 budget, searched for Toyota cars from 2020 under that budget, asked for the second car's mileage and warranty, and liked it. A **new session** and a separate browser both recalled my preference and liked car. I had saved the other liked cars shown in the memory screenshots during earlier checks of the same demo profile.
+I liked that car before starting a new session:
+
+![My like prompt and the saved Toyota Prado reply in session 6e57bc00](docs/streamlit_like.png)
+
+### Long-term memory: new session `33a32234`
+
+I selected **New Session** and asked what preferences I had given and which car I liked. The new session ID, prompt, and recalled Toyota, SUV, budget, and liked car are visible:
+
+![My recall prompt and answer in new session 33a32234](docs/streamlit_memory.png)
+
+I also rejoined as Marvis in a fresh browser and asked what the assistant remembered. That created another session, `573ce116`, with the same recall:
+
+![My fresh-browser recall prompt and answer in session 573ce116](docs/streamlit_rejoin.png)
+
+The other liked cars in the memory screenshots were saved during earlier checks of the same demo profile.
 
 ## Deployed checks
 
