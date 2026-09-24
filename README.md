@@ -4,7 +4,7 @@ A FastAPI car-search assistant with a Streamlit chat client. [Try the hosted dem
 
 ## Quick start
 
-You need Python 3.13, [uv](https://docs.astral.sh/uv/getting-started/installation/), the supplied `Cars_data.xlsx`, and credentials for PostgreSQL, Qdrant, and the NVIDIA embedding and chat APIs. Put `Cars_data.xlsx` in this folder. It is excluded from the repository because seller descriptions contain contact numbers.
+You need Python 3.11 or newer, [uv](https://docs.astral.sh/uv/getting-started/installation/), the supplied `Cars_data.xlsx`, and credentials for PostgreSQL, Qdrant, and the NVIDIA embedding and chat APIs. Put `Cars_data.xlsx` in this folder. It is excluded from the repository because seller descriptions contain contact numbers.
 
 Create a local `.env` file (gitignored). Use a full PostgreSQL URI for `Supabase_Link`:
 
@@ -45,24 +45,26 @@ Open `http://localhost:8501`, enter a name, and select **Start / switch user**. 
 
 I chose Streamlit for a lightweight reactive chat UI and kept search, memory, leads, and booking rules in FastAPI. There is no separate agent framework: a small Python controller uses NVIDIA Nemotron tool calls and validates them before acting. PostgreSQL applies exact filters and supplies the vehicle facts; Qdrant ranks eligible listing IDs for fuzzy queries. PostgreSQL stores recent conversation state and persistent user preferences, which lets a new session recall a returning user without trusting the browser as the source of truth.
 
-The backend returns supplied listing IDs, marks missing prices or mileage as unknown, exports qualified leads to local `data/leads.csv`, and records only simulated viewing requests for Monday–Saturday, 08:00–20:00 Dubai time. The workbook has no managed-car flag, so this prototype treats every supplied listing as eligible. Future work would add authentication, real slot availability, durable hosted lead export, verified body-style attributes, and a labelled search-relevance evaluation set.
+The backend keeps listing IDs for follow-up references while Streamlit shows car names. It marks missing prices or mileage as unknown, exports qualified leads to `data/leads.csv`, and records simulated viewing requests for Monday to Saturday, 08:00 to 20:00 Dubai time. The workbook has no managed-car flag, so every supplied listing is treated as eligible. Future work would add authentication, real slot availability, durable hosted lead export, verified body-style attributes, and a labelled search-relevance evaluation set.
 
-## Required conversation evidence
+## Deployed conversation evidence
 
-These screenshots use the name **Marvis** and were captured from the local client and backend against the same 189-car PostgreSQL and Qdrant inventory as the hosted demo.
+These screenshots were captured from the [deployed Streamlit app](https://app-dubizzle-case-study-48ew9fpqpk2dou4ybavz2g.streamlit.app/) on 24 September 2026 using the name **Marvis**.
 
 ![Marvis starts a session](docs/streamlit_welcome.png)
 
-![Marvis saves a preference and explores Toyota listings](docs/streamlit_results.png)
+![Marvis receives Toyota listings with names, prices, and mileage but no internal listing IDs](docs/streamlit_results.png)
 
-![Marvis asks follow-up questions about the second car and likes it](docs/streamlit_followup.png)
+![A follow-up warranty question stays on the Toyota Urban Cruiser selected as the second result](docs/streamlit_followup.png)
 
 ![A completely new session recalls Marvis's preferences and liked cars](docs/streamlit_memory.png)
 
-In session one, Marvis saved a Toyota SUV preference and AED 150,000 budget, searched the inventory, asked about the second result, asked whether it had a warranty, and liked it. In a **new session** with a different session ID, the assistant recalled the Toyota, SUV, and budget preferences along with liked cars. Another car in that screenshot was liked during an earlier check of the same demo profile.
+![A fresh browser rejoins as Marvis and recalls the same profile](docs/streamlit_rejoin.png)
 
-## Verification and current limits
+Marvis saved a Toyota SUV preference and AED 150,000 budget, searched for Toyota cars from 2020 under that budget, asked for the second car's mileage and warranty, and liked it. A **new session** and a separate browser both recalled the preference and liked car. Other liked cars in the memory screenshots were saved during earlier checks of the same demo profile.
 
-The local test suite passed **50 tests** on 24 September 2026. It covers retrieval, multi-turn references, returning-user memory, lead CSV writing, viewing hours, and out-of-scope requests. The API health check reported 189 cars and 189 vectors. On the deployed app, "I'm into SUVs" was saved and recalled in a new session and after rejoining the same profile in a fresh browser.
+## Verification and limits
 
-The assignment directs applicants to use a Google AI Studio API key; this implementation uses NVIDIA API keys instead, so that substitution needs to be accepted by the evaluator. Body style is not a verified hard filter, so an SUV request can include other vehicle types until the source data supports that filter. Name-only identity is suitable for a demo, not a real user account.
+The deployed app returned cars within the requested make, year, and price limits; returned no listings for an impossible Toyota price; accepted a Saturday 10:00 viewing request; rejected Sunday and 21:00 requests; asked a new user about needs, budget, and contact details; and declined coding and competitor questions. The public UI cannot expose the server-side lead CSV, so CSV export is verified from `app/services/leads.py` rather than from the hosted file.
+
+The PDF instructs applicants to use a Google AI Studio API key; this project uses NVIDIA APIs, so that instruction is **not met**. Semantic results can include loose matches, an unfamiliar make may receive a generic scope reply, and body style is not a verified hard filter. Viewing requests are simulated, and name-only identity is for this demo.
