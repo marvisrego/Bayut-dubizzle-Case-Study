@@ -51,7 +51,7 @@ The backend keeps listing IDs for follow-up references while Streamlit shows car
 
 ## Deployed conversation evidence
 
-I captured these screenshots from the [deployed Streamlit app](https://app-dubizzle-case-study-48ew9fpqpk2dou4ybavz2g.streamlit.app/) on 24 September 2026 using the name **Marvis**.
+I captured these screenshots from the [deployed Streamlit app](https://app-dubizzle-case-study-48ew9fpqpk2dou4ybavz2g.streamlit.app/)  using the name **Marvis**.
 
 ![I started a session as Marvis](docs/streamlit_welcome.png)
 
