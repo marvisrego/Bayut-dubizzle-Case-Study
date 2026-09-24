@@ -179,6 +179,33 @@ class AgentTests(unittest.TestCase):
         self.assertNotIn("BMW", isolated["message"])
         self.assertNotIn("CAR_0002", isolated["message"])
 
+    def test_explicit_preference_survives_wrong_plan_and_combined_recall(self) -> None:
+        saved = self.ask(
+            "I generally prefer Honda SUVs and my budget is AED 150,000",
+            [ToolCall("get_user_memory", {})],
+        )
+        self.assertIn("saved", saved["message"])
+        profile = self.memory.get_user_memory("user-a")
+        self.assertEqual(profile.preferred_makes, ["Honda"])
+        self.assertEqual(profile.preferred_body_type, "SUV")
+        self.assertEqual(profile.budget_max_aed, 150000)
+        lead = self.leads.get_lead("user-a")
+        self.assertEqual(lead["budget_max_aed"], 150000)
+        self.assertEqual(lead["desired_make"], "Honda")
+
+        self.search_hondas()
+        self.ask("I like the second car", [])
+        new_session = self.memory.create_session("user-a", "Amina").session_id
+        recalled = self.ask(
+            "What preferences did I tell you, and which car did I like?",
+            [],
+            new_session,
+        )
+        self.assertIn("Honda", recalled["message"])
+        self.assertIn("SUV", recalled["message"])
+        self.assertIn("AED 150,000", recalled["message"])
+        self.assertIn("CAR_0002", recalled["message"])
+
     def test_named_user_nissan_preference_and_second_car_across_sessions(self) -> None:
         identity = self.api.post("/users", json={"display_name": "Test User"})
         self.assertEqual(identity.status_code, 200, identity.text)

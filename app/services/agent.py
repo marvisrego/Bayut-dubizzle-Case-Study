@@ -18,6 +18,7 @@ from app.services.agent_policy import (
     LIKE_RE,
     NON_AED_RE,
     PHONE_RE,
+    PREFERENCE_RE,
     SEARCH_RE,
     allowed_preference_updates,
     amount_mentioned,
@@ -233,6 +234,34 @@ class ChatAgent:
         except ValidationError:
             return None
 
+    def _explicit_preference_updates(self, message: str) -> dict:
+        """Retain stated preferences even when the tool planner misses them."""
+        if not PREFERENCE_RE.search(message):
+            return {}
+        makes, _ = self.tools.inventory_catalog()
+        candidates: dict = {}
+        stated_makes = [
+            make
+            for make in makes
+            if re.search(r"(?<!\w)" + re.escape(make) + r"(?!\w)", message, re.I)
+        ]
+        if stated_makes:
+            candidates["preferred_makes"] = stated_makes
+        body = re.search(
+            r"\b(?:SUVs?|sedans?|coupes?|hatchbacks?|pickups?|convertibles?|wagons?)\b",
+            message,
+            re.IGNORECASE,
+        )
+        if body:
+            body_name = body.group().removesuffix("s").removesuffix("S")
+            candidates["preferred_body_type"] = (
+                "SUV" if body_name.casefold() == "suv" else body_name.title()
+            )
+        budget = re.search(r"\bAED\s*([\d,]+)\b", message, re.IGNORECASE)
+        if budget and not NON_AED_RE.search(message):
+            candidates["budget_max_aed"] = int(budget.group(1).replace(",", ""))
+        return allowed_preference_updates(message, candidates)
+
     @staticmethod
     def _slot(raw: object, message: str) -> datetime | None:
         if not isinstance(raw, str) or not re.search(
@@ -331,11 +360,15 @@ class ChatAgent:
         if reference_error:
             self.tools.memory.record_turn(body.session_id, message, reference_error)
             return ChatResponse(message=reference_error, session_id=body.session_id)
+        asks_liked = bool(LIKED_MEMORY_RE.search(message))
+        asks_preferences = bool(PREFERENCE_MEMORY_RE.search(message))
         memory_kind = (
-            "liked"
-            if LIKED_MEMORY_RE.search(message)
+            "all"
+            if asks_liked and asks_preferences
+            else "liked"
+            if asks_liked
             else "preferences"
-            if PREFERENCE_MEMORY_RE.search(message)
+            if asks_preferences
             else "all"
             if GENERAL_MEMORY_RE.search(message)
             else None
@@ -347,6 +380,21 @@ class ChatAgent:
         )
         allowed_names = {tool["function"]["name"] for tool in TOOLS}
         calls = [call for call in calls if call.name in allowed_names]
+        explicit_preferences = (
+            self._explicit_preference_updates(message) if not memory_kind else {}
+        )
+        if explicit_preferences:
+            calls = [
+                call
+                for call in calls
+                if call.name not in {"update_user_preferences", "get_user_memory"}
+            ]
+            calls.insert(
+                0,
+                ToolCall(
+                    "update_user_preferences", {"updates": explicit_preferences}
+                ),
+            )
         names = {call.name for call in calls}
         if BOOKING_RE.search(message):
             # Viewing requests reach the slot validator when the planner misses them.
@@ -393,6 +441,14 @@ class ChatAgent:
         search_ids = active_filters = selected_id = None
         booking_recorded = False
         lead_data: dict = {}
+        for source, target in (
+            ("preferred_makes", "desired_make"),
+            ("preferred_body_type", "desired_body_type"),
+            ("budget_max_aed", "budget_max_aed"),
+        ):
+            value = explicit_preferences.get(source)
+            if value:
+                lead_data[target] = value[0] if source == "preferred_makes" else value
         for call in calls[:5]:
             args = call.arguments
             if call.name == "search_inventory":

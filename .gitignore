@@ -12,3 +12,7 @@ data/leads.csv.lock
 data/.leads-*.tmp
 __pycache__/
 .pytest_cache/
+local-diagnostic.png
+live-diagnostic.png
+live-diagnostic-final.png
+live-after-name.png
