@@ -1,6 +1,7 @@
 # Dubizzle Cars AI Assistant
 
 A FastAPI car-search assistant with a Streamlit chat client. (https://app-dubizzle-case-study-48ew9fpqpk2dou4ybavz2g.streamlit.app/) (a cold start can take over a minute).
+The frontend has been deployed to Streamlit and the FastAPI Backend has been deployed to Render.
 
 ## Quick start
 
