@@ -131,3 +131,19 @@ class ApiClient:
             )
         data["cars"] = cars
         return data
+
+    def get_car(self, listing_id: str) -> dict | None:
+        """Resolve a saved car's display name without exposing its ID in the UI."""
+        try:
+            with httpx.Client(
+                base_url=self.base_url,
+                transport=self.transport,
+                timeout=httpx.Timeout(10.0, connect=5.0),
+            ) as client:
+                response = client.get(f"cars/{listing_id}")
+            if response.status_code != 200:
+                return None
+            car = response.json()
+        except (httpx.RequestError, ValueError):
+            return None
+        return car if isinstance(car, dict) else None

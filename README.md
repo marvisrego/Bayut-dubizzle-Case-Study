@@ -59,10 +59,10 @@ These screenshots use the name **Marvis** and were captured from the local clien
 
 ![A completely new session recalls Marvis's preferences and liked cars](docs/streamlit_memory.png)
 
-In session one, Marvis saved a Toyota SUV preference and AED 150,000 budget, searched the inventory, asked about the second result (`CAR_0047`), asked whether it had a warranty, and liked it. In a **new session** with a different session ID, the assistant recalled the Toyota, SUV, and budget preferences along with liked cars. `CAR_0060` in that screenshot was liked during an earlier check of the same demo profile.
+In session one, Marvis saved a Toyota SUV preference and AED 150,000 budget, searched the inventory, asked about the second result, asked whether it had a warranty, and liked it. In a **new session** with a different session ID, the assistant recalled the Toyota, SUV, and budget preferences along with liked cars. Another car in that screenshot was liked during an earlier check of the same demo profile.
 
 ## Verification and current limits
 
-The local test suite passed **50 tests** on 24 September 2026. It covers retrieval, multi-turn references, returning-user memory, lead CSV writing, viewing hours, and out-of-scope requests. The API health check reported 189 cars and 189 vectors. The hosted app accepted Marvis and returned inventory matches, but its currently deployed backend answered the combined preference-and-liked-car recall question with liked cars only. The local backend fix shown above must be published and redeployed for the hosted flow to match these screenshots.
+The local test suite passed **50 tests** on 24 September 2026. It covers retrieval, multi-turn references, returning-user memory, lead CSV writing, viewing hours, and out-of-scope requests. The API health check reported 189 cars and 189 vectors. On the deployed app, "I'm into SUVs" was saved and recalled in a new session and after rejoining the same profile in a fresh browser.
 
 The assignment directs applicants to use a Google AI Studio API key; this implementation uses NVIDIA API keys instead, so that substitution needs to be accepted by the evaluator. Body style is not a verified hard filter, so an SUV request can include other vehicle types until the source data supports that filter. Name-only identity is suitable for a demo, not a real user account.

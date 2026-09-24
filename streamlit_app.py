@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from html import escape
 from pathlib import Path
 from urllib.parse import urlparse
@@ -22,6 +23,10 @@ _STYLES = (Path(__file__).resolve().parent / ".streamlit" / "styles.css").read_t
 )
 st.markdown(f"<style>{_STYLES}</style>", unsafe_allow_html=True)
 
+_LISTING_ID_RE = re.compile(r"\bCAR_\d{4}\b", re.IGNORECASE)
+_RESULT_ID_RE = re.compile(r"(\b\d+\.\s+)CAR_\d{4}\s+[—-]\s+", re.IGNORECASE)
+_DETAIL_ID_RE = re.compile(r"\bCAR_\d{4}\s+\(([^)]+)\)", re.IGNORECASE)
+
 
 def _state() -> None:
     for key, default in (
@@ -29,6 +34,7 @@ def _state() -> None:
         ("active_display_name", None),
         ("session_id", None),
         ("messages", []),
+        ("car_titles", {}),
     ):
         if key not in st.session_state:
             st.session_state[key] = default
@@ -71,6 +77,40 @@ def _display_car(car: dict) -> dict:
     return result
 
 
+def _car_title(car: dict) -> str | None:
+    title = " ".join(
+        str(value).strip()
+        for value in (car.get("year"), car.get("make"), car.get("model"), car.get("trim"))
+        if value is not None and str(value).strip()
+    )
+    return title or None
+
+
+def _public_reply(
+    message: str, cars: list[dict], known_titles: dict[str, str], api: ApiClient
+) -> tuple[str, dict[str, str]]:
+    """Render car names while retaining listing IDs in the backend response."""
+    titles = dict(known_titles)
+    for car in cars:
+        listing_id, title = car.get("listing_id"), _car_title(car)
+        if isinstance(listing_id, str) and title:
+            titles[listing_id.upper()] = title
+
+    # Search summaries and detail answers already contain a vehicle title.
+    visible = _RESULT_ID_RE.sub(r"\1", message)
+    visible = _DETAIL_ID_RE.sub(r"\1", visible)
+    for listing_id in set(_LISTING_ID_RE.findall(visible)):
+        if listing_id.upper() not in titles:
+            car = api.get_car(listing_id)
+            title = _car_title(car) if car else None
+            if title:
+                titles[listing_id.upper()] = title
+    visible = _LISTING_ID_RE.sub(
+        lambda match: titles.get(match.group().upper(), "a saved car"), visible
+    )
+    return visible, titles
+
+
 def _vehicle_card(car: dict, position: int) -> None:
     with st.container(border=True):
         photo, details = st.columns([1, 2.1], vertical_alignment="top")
@@ -84,19 +124,8 @@ def _vehicle_card(car: dict, position: int) -> None:
             else:
                 st.caption("Image not available")
         with details:
-            listing_id = car.get("listing_id") or "Listing ID not specified"
-            st.caption(f"{position:02d}  ·  {listing_id}")
-            title = " ".join(
-                str(value).strip()
-                for value in (
-                    car.get("year"),
-                    car.get("make"),
-                    car.get("model"),
-                    car.get("trim"),
-                )
-                if value is not None and str(value).strip()
-            )
-            st.subheader(title or "Vehicle details not specified")
+            st.caption(f"{position:02d}")
+            st.subheader(_car_title(car) or "Vehicle details not specified")
             price, mileage = st.columns(2)
             with price:
                 st.caption("Cash price")
@@ -187,6 +216,7 @@ def main() -> None:
                     st.session_state.active_display_name = name
                     st.session_state.session_id = session_id
                     st.session_state.messages = []
+                    st.session_state.car_titles = {}
 
         if st.session_state.session_id:
             st.markdown(
@@ -319,10 +349,15 @@ def main() -> None:
                     st.session_state.session_id,
                     submitted,
                 )
+            cars = [_display_car(car) for car in answer["cars"]]
+            visible_reply, titles = _public_reply(
+                answer["message"], cars, st.session_state.car_titles, api
+            )
+            st.session_state.car_titles = titles
             assistant_item = {
                 "role": "assistant",
-                "content": answer["message"],
-                "cars": [_display_car(car) for car in answer["cars"]],
+                "content": visible_reply,
+                "cars": cars,
             }
         except ApiError as exc:
             assistant_item = {"role": "assistant", "content": str(exc), "error": True}
