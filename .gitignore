@@ -1,0 +1,14 @@
+.env
+.venv/
+.ruff_cache/
+.streamlit/secrets.toml
+Cars_data.xlsx
+data/processed/cars_merged.csv
+data/processed/cars_merged.xlsx
+data/.nvidia_rate_limit.json*
+data/.nvidia_rate_limit.tmp
+data/leads.csv
+data/leads.csv.lock
+data/.leads-*.tmp
+__pycache__/
+.pytest_cache/
