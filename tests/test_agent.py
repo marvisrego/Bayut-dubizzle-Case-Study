@@ -206,6 +206,13 @@ class AgentTests(unittest.TestCase):
         self.assertIn("AED 150,000", recalled["message"])
         self.assertIn("CAR_0002", recalled["message"])
 
+    def test_into_suv_preference_is_recalled_in_new_session(self) -> None:
+        saved = self.ask("I'm into SUVs", [ToolCall("get_user_memory", {})])
+        self.assertIn("saved", saved["message"])
+        new_session = self.memory.create_session("user-a", "Amina").session_id
+        recalled = self.ask("What is my preference?", [], new_session)
+        self.assertIn("SUV", recalled["message"])
+
     def test_named_user_nissan_preference_and_second_car_across_sessions(self) -> None:
         identity = self.api.post("/users", json={"display_name": "Test User"})
         self.assertEqual(identity.status_code, 200, identity.text)
