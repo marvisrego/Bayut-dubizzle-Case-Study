@@ -1,6 +1,6 @@
 # Dubizzle Cars AI Assistant
 
-A FastAPI car-search assistant with a Streamlit chat client. (https://app-dubizzle-case-study-48ew9fpqpk2dou4ybavz2g.streamlit.app/)](https://app-dubizzle-case-study-48ew9fpqpk2dou4ybavz2g.streamlit.app/) (a cold start can take over a minute).
+A FastAPI car-search assistant with a Streamlit chat client. (https://app-dubizzle-case-study-48ew9fpqpk2dou4ybavz2g.streamlit.app/) (a cold start can take over a minute).
 
 ## Quick start
 
