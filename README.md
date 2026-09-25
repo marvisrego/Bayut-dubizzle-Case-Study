@@ -42,7 +42,7 @@ uv run streamlit run streamlit_app.py
 
 Open `http://localhost:8501`, enter a name, and select **Start / switch user**. The API runs at `http://127.0.0.1:8000`; check `/health` for `ready` and `/docs` for the API. Set `FASTAPI_URL` in the Streamlit environment or `.env` if the backend uses another address. To demonstrate memory, state a preference, like a shown car, select **New Session**, and ask what the assistant remembers.
 
-When FastAPI runs locally, saving a lead stores it in PostgreSQL and creates or updates `data/leads.csv` in this project folder. The CSV is generated on the first successful lead save, not during setup. If Streamlit connects to a remote FastAPI server, the CSV is created on that server instead.
+When FastAPI runs locally, the csv file is saved locally but while using it via the deployed website the leads data gets saved to PostgresSQL database and creates or updates `data/leads.csv` in this project folder. The CSV is generated on the first successful lead save, not during setup. If Streamlit connects to a remote FastAPI server, the CSV is created on that server instead.
 
 ## Design and scope
 
